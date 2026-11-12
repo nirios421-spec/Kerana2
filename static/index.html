@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kerana Showroom - Tienda Online</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            800: '#262626',
+                            900: '#171717',
+                            950: '#0a0a0a',
+                        },
+                        accent: '#111111'
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 font-sans min-h-screen flex flex-col selection:bg-black selection:text-white">
+
+    <!-- Barra Superior / Anuncio -->
+    <div class="bg-black text-white text-xs py-2 text-center tracking-widest uppercase font-medium">
+        Envío a todo el país • Contactanos por WhatsApp e Instagram
+    </div>
+
+    <!-- Navegación Principal -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Botón Menú Mobile y Redes -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 text-gray-700 hover:text-black focus:outline-none lg:hidden" aria-label="Menú">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                
+                <div class="hidden lg:flex items-center space-x-3">
+                    <a href="https://wa.me/5493804128496" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors" title="WhatsApp">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/kerana.showroom/" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors" title="Instagram">
+                        <i class="fa-brands fa-instagram text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nombre de la Marca -->
+            <div class="text-center">
+                <a href="#" class="inline-flex flex-col items-center">
+                    <span class="font-serif text-2xl sm:text-3xl font-semibold tracking-wider text-black">KERANA</span>
+                    <span class="text-[9px] tracking-[0.35em] text-gray-500 uppercase -mt-1 font-semibold">SHOWROOM</span>
+                </a>
+            </div>
+
+            <!-- Iconos de Acción (Admin, Carrito) -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <button id="adminAuthBtn" onclick="handleAdminButtonClick()" class="p-2 text-gray-600 hover:text-black transition-colors relative" title="Acceso Admin">
+                    <i id="adminLockIcon" class="fa-solid fa-lock text-lg"></i>
+                    <span id="adminBadge" class="hidden absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                </button>
+
+                <button id="cartBtn" onclick="toggleCartDrawer()" class="p-2 text-gray-800 hover:text-black relative transition-colors" aria-label="Carrito">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span id="cartCount" class="absolute -top-1 -right-1 bg-black text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Categorías (Desktop) -->
+        <nav class="hidden lg:block border-t border-gray-100 bg-white">
+            <div class="max-w-7xl mx-auto px-4 flex items-center justify-center space-x-8 py-3 text-xs tracking-widest font-medium uppercase">
+                <button onclick="setCategoryFilter('todas')" class="cat-link active-cat text-black border-b-2 border-black pb-1 transition-all" data-cat="todas">Todos</button>
+                <button onclick="setCategoryFilter('remeras')" class="cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all" data-cat="remeras">Remeras</button>
+                <button onclick="setCategoryFilter('shorts')" class="cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all" data-cat="shorts">Shorts</button>
+                <button onclick="setCategoryFilter('body')" class="cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all" data-cat="body">Body</button>
+                <button onclick="setCategoryFilter('top')" class="cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all" data-cat="top">Top</button>
+                <button onclick="setCategoryFilter('carteras')" class="cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all" data-cat="carteras">Carteras</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Menú desplegable Mobile -->
+    <div id="mobileMenu" class="hidden lg:hidden bg-white border-b border-gray-200 px-4 pt-2 pb-6 space-y-4">
+        <div class="font-medium text-xs text-gray-400 uppercase tracking-wider mb-2">Categorías</div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="setCategoryFilter('todas'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Todos</button>
+            <button onclick="setCategoryFilter('remeras'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Remeras</button>
+            <button onclick="setCategoryFilter('shorts'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Shorts</button>
+            <button onclick="setCategoryFilter('body'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Body</button>
+            <button onclick="setCategoryFilter('top'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Top</button>
+            <button onclick="setCategoryFilter('carteras'); toggleMobileMenu();" class="text-left py-2 px-3 rounded-lg bg-gray-50 text-sm font-medium hover:bg-black hover:text-white transition-colors">Carteras</button>
+        </div>
+    </div>
+
+    <!-- Banner Hero Principal -->
+    <section class="relative bg-neutral-900 text-white overflow-hidden py-16 sm:py-24">
+        <div class="absolute inset-0 opacity-20">
+            <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80" alt="Fashion" class="w-full h-full object-cover">
+        </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-xs sm:text-sm uppercase tracking-[0.4em] text-gray-300 font-medium mb-3">Nueva Colección</p>
+            <h1 class="font-serif text-4xl sm:text-6xl font-light tracking-wide mb-6">Kerana Showroom</h1>
+            <p class="max-w-xl mx-auto text-gray-300 text-sm sm:text-base font-light leading-relaxed mb-8">
+                Prendas únicas seleccionadas para potenciar tu estilo. Elegancia, comodidad y tendencia en cada detalle.
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#catalogo" class="bg-white text-black px-8 py-3 text-xs tracking-widest font-semibold uppercase hover:bg-gray-200 transition-colors">Ver Catálogo</a>
+                <a href="https://wa.me/5493804128496" target="_blank" rel="noopener noreferrer" class="border border-white text-white px-8 py-3 text-xs tracking-widest font-semibold uppercase hover:bg-white hover:text-black transition-colors flex items-center space-x-2">
+                    <i class="fa-brands fa-whatsapp text-sm"></i>
+                    <span>Consultar</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filtros rápidos Mobile -->
+    <section class="lg:hidden border-b border-gray-200 bg-gray-50 sticky top-20 z-30 py-3">
+        <div class="px-4 flex space-x-2 overflow-x-auto hide-scrollbar text-xs">
+            <button onclick="setCategoryFilter('todas')" class="cat-pill bg-black text-white px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="todas">Todos</button>
+            <button onclick="setCategoryFilter('remeras')" class="cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="remeras">Remeras</button>
+            <button onclick="setCategoryFilter('shorts')" class="cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="shorts">Shorts</button>
+            <button onclick="setCategoryFilter('body')" class="cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="body">Body</button>
+            <button onclick="setCategoryFilter('top')" class="cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="top">Top</button>
+            <button onclick="setCategoryFilter('carteras')" class="cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium" data-cat="carteras">Carteras</button>
+        </div>
+    </section>
+
+    <!-- Catálogo -->
+    <main id="catalogo" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-4 border-b border-gray-100">
+            <div>
+                <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">Explora</span>
+                <h2 id="currentCategoryTitle" class="text-2xl sm:text-3xl font-serif font-medium text-gray-900 mt-1 capitalize">Todos los Productos</h2>
+            </div>
+            
+            <div class="mt-4 md:mt-0 flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Buscar prenda..." class="pl-9 pr-4 py-2 border border-gray-200 rounded-full text-xs focus:outline-none focus:border-black w-40 sm:w-56 transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                </div>
+
+                <div id="adminControlsHeader" class="hidden">
+                    <button onclick="openAddProductModal()" class="bg-black text-white px-4 py-2 rounded-full text-xs font-semibold flex items-center space-x-2 shadow-sm hover:bg-gray-800 transition-colors">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">Nuevo Producto</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"></div>
+
+        <div id="noProductsMessage" class="hidden py-16 text-center">
+            <i class="fa-solid fa-shirt text-4xl text-gray-300 mb-3"></i>
+            <h3 class="text-lg font-medium text-gray-700">No se encontraron productos</h3>
+            <p class="text-sm text-gray-500 mt-1">Prueba seleccionando otra categoría o limpiando el buscador.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black text-white border-t border-neutral-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="flex flex-col items-start">
+                    <span class="font-serif text-2xl font-semibold tracking-wider mb-3">KERANA SHOWROOM</span>
+                    <p class="text-xs text-gray-400 leading-relaxed max-w-sm">
+                        Tu showroom de confianza. Prendas de tendencia pensadas para destacar tu personalidad. Envíos y atención personalizada.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-widest text-gray-300 mb-4">Categorías</h4>
+                    <ul class="space-y-2 text-xs text-gray-400">
+                        <li><button onclick="setCategoryFilter('remeras')" class="hover:text-white transition-colors">Remeras</button></li>
+                        <li><button onclick="setCategoryFilter('shorts')" class="hover:text-white transition-colors">Shorts</button></li>
+                        <li><button onclick="setCategoryFilter('body')" class="hover:text-white transition-colors">Body</button></li>
+                        <li><button onclick="setCategoryFilter('top')" class="hover:text-white transition-colors">Top</button></li>
+                        <li><button onclick="setCategoryFilter('carteras')" class="hover:text-white transition-colors">Carteras</button></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-widest text-gray-300 mb-4">Contacto Directo</h4>
+                    <div class="space-y-3 text-xs text-gray-400">
+                        <a href="https://wa.me/5493804128496" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-3 hover:text-white transition-colors">
+                            <i class="fa-brands fa-whatsapp text-green-500 text-base"></i>
+                            <span>+54 9 3804128496</span>
+                        </a>
+                        <a href="https://www.instagram.com/kerana.showroom/" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-3 hover:text-white transition-colors">
+                            <i class="fa-brands fa-instagram text-pink-500 text-base"></i>
+                            <span>@kerana.showroom</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center text-[10px] text-gray-500 space-y-2 sm:space-y-0">
+                <p>&copy; 2026 Kerana Showroom. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Carrito -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-backdrop" onclick="toggleCartDrawer()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <h3 class="font-serif text-xl font-semibold">Tu Carrito</h3>
+                    </div>
+                    <button onclick="toggleCartDrawer()" class="p-2 text-gray-400 hover:text-black">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div id="cartItemsList" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+                <div class="p-6 border-t border-gray-100 bg-gray-50 space-y-4">
+                    <div class="flex justify-between items-center text-sm font-semibold">
+                        <span>Total Estimado:</span>
+                        <span id="cartTotal" class="text-lg font-bold">$0</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <button onclick="sendOrderWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 text-sm transition-colors shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                            <span>Pedir por WhatsApp</span>
+                        </button>
+                        
+                        <button onclick="sendOrderInstagram()" class="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-500 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center space-x-2 text-sm transition-colors shadow-sm">
+                            <i class="fa-brands fa-instagram text-lg"></i>
+                            <span>Consultar por Instagram</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Login de Administrador -->
+    <div id="adminAuthModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-backdrop" onclick="toggleAdminModal()"></div>
+        <div class="relative bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl z-10 border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-800">
+                    <i class="fa-solid fa-user-shield text-2xl"></i>
+                </div>
+                <h3 class="font-serif text-xl font-bold">Acceso Propietaria</h3>
+                <p class="text-xs text-gray-500 mt-1">Ingresa la clave exclusiva para administrar productos</p>
+            </div>
+
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Contraseña</label>
+                    <input type="password" id="adminPasswordInput" required placeholder="Ingresa tu clave" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                </div>
+                <div id="loginError" class="text-red-500 text-xs hidden text-center font-medium">
+                    Contraseña incorrecta. Inténtalo de nuevo.
+                </div>
+                <button type="submit" class="w-full bg-black text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-gray-800 transition-colors">
+                    Ingresar al Panel
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Agregar / Editar Producto -->
+    <div id="productFormModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-backdrop" onclick="closeProductModal()"></div>
+        <div class="relative bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl z-10 border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="productModalTitle" class="font-serif text-xl font-bold">Agregar Nuevo Producto</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-black">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveProduct(event)" class="space-y-4">
+                <input type="hidden" id="editProductId">
+                
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Nombre del Producto</label>
+                    <input type="text" id="prodTitle" required placeholder="Ej: Top Crochet Blanco" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Categoría</label>
+                    <select id="prodCategory" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black capitalize">
+                        <option value="remeras">Remeras</option>
+                        <option value="shorts">Shorts</option>
+                        <option value="body">Body</option>
+                        <option value="top">Top</option>
+                        <option value="carteras">Carteras</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Precio ($ ARS)</label>
+                    <input type="number" id="prodPrice" required min="0" placeholder="Ej: 18500" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                </div>
+
+                <!-- Subir desde Archivos / URL -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Imagen del Producto</label>
+                    <input type="file" id="prodFileInput" accept="image/*" onchange="previewImageFile(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 mb-2 cursor-pointer">
+                    <input type="url" id="prodImage" placeholder="O pega la URL de la imagen..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                    <div id="imagePreviewContainer" class="hidden mt-2 relative w-full h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                        <img id="imagePreview" src="" alt="Vista previa" class="w-full h-full object-cover">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Descripción / Detalles</label>
+                    <textarea id="prodDesc" rows="3" placeholder="Talles disponibles, tela, detalles..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-3">
+                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancelar</button>
+                    <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Funcionalidades Javascript -->
+    <script>
+        (function() {
+            const ADMIN_PASSWORD_HASH = "Kerana321";
+            let isAdminLoggedIn = false;
+            let activeCategory = 'todas';
+            let cart = [];
+            let uploadedImageBase64 = "";
+
+            const defaultProducts = [
+                {
+                    id: 1,
+                    title: "Remera Oversize Lino Minimalist",
+                    category: "remeras",
+                    price: 18500,
+                    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80",
+                    description: "Confeccionada en lino súper fresco. Talle único adaptable del S al L."
+                },
+                {
+                    id: 2,
+                    title: "Short Mom Denim Vintage White",
+                    category: "shorts",
+                    price: 24000,
+                    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80",
+                    description: "Corte tiro alto, tiro holgado. Talles 36 al 44."
+                },
+                {
+                    id: 3,
+                    title: "Body Malla Escote Espalda",
+                    category: "body",
+                    price: 19800,
+                    image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&q=80",
+                    description: "Con broche inferior, lycra premium con elastano. Excelente calce."
+                },
+                {
+                    id: 4,
+                    title: "Top Ribbed Satinado Noche",
+                    category: "top",
+                    price: 14200,
+                    image: "https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?auto=format&fit=crop&q=80",
+                    description: "Top breteles finos, súper suave y combinable para salidas."
+                },
+                {
+                    id: 5,
+                    title: "Cartera Bandolera Cuero Ecocuero",
+                    category: "carteras",
+                    price: 29500,
+                    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80",
+                    description: "Con correa regulable y herrajes plateados de primera calidad."
+                }
+            ];
+
+            function getProducts() {
+                try {
+                    const stored = localStorage.getItem('kerana_products');
+                    if (!stored) {
+                        localStorage.setItem('kerana_products', JSON.stringify(defaultProducts));
+                        return defaultProducts;
+                    }
+                    return JSON.parse(stored);
+                } catch (e) {
+                    return defaultProducts;
+                }
+            }
+
+            function saveProductsToStorage(products) {
+                try {
+                    localStorage.setItem('kerana_products', JSON.stringify(products));
+                } catch (e) {
+                    alert('La imagen es demasiado pesada para guardarse localmente. Prueba con una imagen más liviana o pega una URL.');
+                }
+            }
+
+            function renderProducts() {
+                const grid = document.getElementById('productsGrid');
+                const noProducts = document.getElementById('noProductsMessage');
+                const searchInput = document.getElementById('searchInput');
+                if (!grid) return;
+
+                const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+                const products = getProducts();
+                
+                const filtered = products.filter(p => {
+                    const matchesCat = (activeCategory === 'todas' || p.category === activeCategory);
+                    const matchesSearch = p.title.toLowerCase().includes(searchVal) || (p.description || '').toLowerCase().includes(searchVal);
+                    return matchesCat && matchesSearch;
+                });
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = '';
+                    noProducts.classList.remove('hidden');
+                    return;
+                }
+
+                noProducts.classList.add('hidden');
+                grid.innerHTML = filtered.map(p => `
+                    <div class="product-card group bg-white border border-gray-100 rounded-xl overflow-hidden flex flex-col relative">
+                        <div class="relative aspect-[3/4] bg-gray-100 overflow-hidden">
+                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://via.placeholder.com/400x500?text=Kerana+Showroom'">
+                            <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-md text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-full text-gray-800">
+                                ${p.category}
+                            </span>
+
+                            ${isAdminLoggedIn ? `
+                                <div class="absolute top-2 right-2 flex space-x-1 z-10">
+                                    <button onclick="openEditProductModal(${p.id})" class="bg-white/90 text-gray-800 p-2 rounded-full hover:bg-black hover:text-white transition-colors shadow" title="Editar">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteProduct(${p.id})" class="bg-white/90 text-red-600 p-2 rounded-full hover:bg-red-600 hover:text-white transition-colors shadow" title="Eliminar">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-medium text-sm text-gray-900 group-hover:text-black transition-colors line-clamp-1">${p.title}</h3>
+                                <p class="text-xs text-gray-500 mt-1 line-clamp-2 font-light">${p.description || ''}</p>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
+                                <span class="font-bold text-base text-gray-900">$${Number(p.price).toLocaleString('es-AR')}</span>
+                                <button onclick="addToCart(${p.id})" class="bg-black hover:bg-gray-800 text-white text-xs px-3 py-2 rounded-lg flex items-center space-x-1.5 transition-colors">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                    <span>Agregar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            window.setCategoryFilter = function(category) {
+                activeCategory = category;
+
+                const titleMap = {
+                    'todas': 'Todos los Productos',
+                    'remeras': 'Remeras',
+                    'shorts': 'Shorts',
+                    'body': 'Bodys',
+                    'top': 'Tops',
+                    'carteras': 'Carteras'
+                };
+                document.getElementById('currentCategoryTitle').innerText = titleMap[category] || category;
+
+                document.querySelectorAll('.cat-link').forEach(btn => {
+                    btn.className = (btn.dataset.cat === category)
+                        ? 'cat-link active-cat text-black border-b-2 border-black pb-1 transition-all'
+                        : 'cat-link text-gray-500 hover:text-black border-b-2 border-transparent hover:border-black pb-1 transition-all';
+                });
+
+                document.querySelectorAll('.cat-pill').forEach(btn => {
+                    btn.className = (btn.dataset.cat === category)
+                        ? 'cat-pill bg-black text-white px-4 py-2 rounded-full whitespace-nowrap font-medium'
+                        : 'cat-pill bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-full whitespace-nowrap font-medium';
+                });
+
+                renderProducts();
+            };
+
+            window.filterProducts = function() {
+                renderProducts();
+            };
+
+            window.previewImageFile = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadedImageBase64 = e.target.result;
+                        document.getElementById('imagePreview').src = uploadedImageBase64;
+                        document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                        document.getElementById('prodImage').value = '';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            window.handleAdminButtonClick = function() {
+                if (isAdminLoggedIn) {
+                    if (confirm('¿Deseas cerrar la sesión de administradora?')) {
+                        isAdminLoggedIn = false;
+                        document.getElementById('adminBadge').classList.add('hidden');
+                        document.getElementById('adminControlsHeader').classList.add('hidden');
+                        document.getElementById('adminLockIcon').className = 'fa-solid fa-lock text-lg';
+                        renderProducts();
+                    }
+                } else {
+                    toggleAdminModal();
+                }
+            };
+
+            window.toggleAdminModal = function() {
+                const modal = document.getElementById('adminAuthModal');
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    document.getElementById('adminPasswordInput').value = '';
+                    document.getElementById('loginError').classList.add('hidden');
+                }
+            };
+
+            window.handleAdminLogin = function(e) {
+                e.preventDefault();
+                const pass = document.getElementById('adminPasswordInput').value;
+                if (pass === ADMIN_PASSWORD_HASH) {
+                    isAdminLoggedIn = true;
+                    document.getElementById('adminBadge').classList.remove('hidden');
+                    document.getElementById('adminControlsHeader').classList.remove('hidden');
+                    document.getElementById('adminLockIcon').className = 'fa-solid fa-lock-open text-lg text-green-600';
+                    document.getElementById('loginError').classList.add('hidden');
+                    toggleAdminModal();
+                    renderProducts();
+                } else {
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            };
+
+            window.openAddProductModal = function() {
+                document.getElementById('productModalTitle').innerText = 'Agregar Nuevo Producto';
+                document.getElementById('editProductId').value = '';
+                document.getElementById('prodTitle').value = '';
+                document.getElementById('prodCategory').value = 'remeras';
+                document.getElementById('prodPrice').value = '';
+                document.getElementById('prodImage').value = '';
+                document.getElementById('prodFileInput').value = '';
+                document.getElementById('prodDesc').value = '';
+                document.getElementById('imagePreviewContainer').classList.add('hidden');
+                uploadedImageBase64 = "";
+
+                document.getElementById('productFormModal').classList.remove('hidden');
+            };
+
+            window.openEditProductModal = function(id) {
+                const products = getProducts();
+                const prod = products.find(p => p.id === id);
+                if (!prod) return;
+
+                document.getElementById('productModalTitle').innerText = 'Editar Producto';
+                document.getElementById('editProductId').value = prod.id;
+                document.getElementById('prodTitle').value = prod.title;
+                document.getElementById('prodCategory').value = prod.category;
+                document.getElementById('prodPrice').value = prod.price;
+                document.getElementById('prodDesc').value = prod.description || '';
+                document.getElementById('prodFileInput').value = '';
+                
+                uploadedImageBase64 = prod.image;
+                document.getElementById('prodImage').value = prod.image.startsWith('data:') ? '' : prod.image;
+                document.getElementById('imagePreview').src = prod.image;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+
+                document.getElementById('productFormModal').classList.remove('hidden');
+            };
+
+            window.closeProductModal = function() {
+                document.getElementById('productFormModal').classList.add('hidden');
+            };
+
+            window.saveProduct = function(e) {
+                e.preventDefault();
+                const id = document.getElementById('editProductId').value;
+                const title = document.getElementById('prodTitle').value;
+                const category = document.getElementById('prodCategory').value;
+                const price = parseFloat(document.getElementById('prodPrice').value);
+                const urlImage = document.getElementById('prodImage').value;
+                const description = document.getElementById('prodDesc').value;
+
+                const image = uploadedImageBase64 || urlImage || 'https://via.placeholder.com/400x500?text=Kerana+Showroom';
+
+                let products = getProducts();
+
+                if (id) {
+                    products = products.map(p => p.id == id ? { ...p, title, category, price, image, description } : p);
+                } else {
+                    const newProd = {
+                        id: Date.now(),
+                        title,
+                        category,
+                        price,
+                        image,
+                        description
+                    };
+                    products.push(newProd);
+                }
+
+                saveProductsToStorage(products);
+                closeProductModal();
+                renderProducts();
+            };
+
+            window.deleteProduct = function(id) {
+                if (confirm('¿Estás segura de que deseas eliminar este producto?')) {
+                    let products = getProducts();
+                    products = products.filter(p => p.id !== id);
+                    saveProductsToStorage(products);
+                    renderProducts();
+                }
+            };
+
+            window.toggleCartDrawer = function() {
+                document.getElementById('cartDrawer').classList.toggle('hidden');
+            };
+
+            window.toggleMobileMenu = function() {
+                document.getElementById('mobileMenu').classList.toggle('hidden');
+            };
+
+            window.addToCart = function(id) {
+                const products = getProducts();
+                const prod = products.find(p => p.id === id);
+                if (!prod) return;
+
+                const existing = cart.find(item => item.id === id);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    cart.push({ ...prod, quantity: 1 });
+                }
+                updateCartUI();
+            };
+
+            window.updateCartQuantity = function(id, delta) {
+                const item = cart.find(i => i.id === id);
+                if (!item) return;
+
+                item.quantity += delta;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+                updateCartUI();
+            };
+
+            function updateCartUI() {
+                const cartList = document.getElementById('cartItemsList');
+                const cartCount = document.getElementById('cartCount');
+                const cartTotal = document.getElementById('cartTotal');
+                if (!cartList) return;
+
+                const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+                const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+                cartCount.innerText = totalItems;
+                cartTotal.innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+
+                if (cart.length === 0) {
+                    cartList.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            <i class="fa-solid fa-bag-shopping text-3xl mb-2"></i>
+                            <p class="text-sm">Tu carrito está vacío.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                cartList.innerHTML = cart.map(item => `
+                    <div class="flex items-center space-x-4 border-b border-gray-100 pb-4">
+                        <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-lg bg-gray-50">
+                        <div class="flex-1">
+                            <h4 class="text-xs font-semibold text-gray-900 line-clamp-1">${item.title}</h4>
+                            <span class="text-xs font-bold text-gray-800">$${Number(item.price).toLocaleString('es-AR')}</span>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <button onclick="updateCartQuantity(${item.id}, -1)" class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-600 hover:bg-black hover:text-white">-</button>
+                                <span class="text-xs font-medium">${item.quantity}</span>
+                                <button onclick="updateCartQuantity(${item.id}, 1)" class="w-5 h-5 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-600 hover:bg-black hover:text-white">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function getOrderSummaryText() {
+                let text = "Hola! Quisiera realizar la compra de los siguientes productos en Kerana Showroom:\n\n";
+                let total = 0;
+                cart.forEach(item => {
+                    const subtotal = item.price * item.quantity;
+                    total += subtotal;
+                    text += `• ${item.title} (x${item.quantity}) - $${subtotal.toLocaleString('es-AR')}\n`;
+                });
+                text += `\nTotal: $${total.toLocaleString('es-AR')}`;
+                return text;
+            }
+
+            window.sendOrderWhatsApp = function() {
+                if (cart.length === 0) return alert('Tu carrito está vacío.');
+                const text = encodeURIComponent(getOrderSummaryText());
+                window.open(`https://wa.me/5493804128496?text=${text}`, '_blank');
+            };
+
+            window.sendOrderInstagram = function() {
+                if (cart.length === 0) return alert('Tu carrito está vacío.');
+                const text = getOrderSummaryText();
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('¡Resumen de pedido copiado! Ahora puedes pegarlo en el chat de Instagram.');
+                    window.open('https://www.instagram.com/kerana.showroom/', '_blank');
+                }).catch(() => {
+                    window.open('https://www.instagram.com/kerana.showroom/', '_blank');
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    renderProducts();
+                    updateCartUI();
+                });
+            } else {
+                renderProducts();
+                updateCartUI();
+            }
+        })();
+    </script>
+</body>
+</html>
